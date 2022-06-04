@@ -12,7 +12,6 @@ const getEvents = async (req = request, res = response) => {
 }
 
 const createEvent = async (req = request, res = response) => {
-    console.log(req.body);
 
     //Save to database
     try {
@@ -36,11 +35,46 @@ const createEvent = async (req = request, res = response) => {
     }    
 }
 
-const updateEvent = (req = request, res = response) => {
-    return res.status(200).json({
-        ok: true,
-        msg: 'Update event'
-    });
+const updateEvent = async (req = request, res = response) => {
+    const eventId = req.params.id;
+
+    try {
+        const eventDb = await Event.findById(eventId);
+
+        if(!eventDb){
+            return res.status(404).json({
+                ok: false,
+                msg: 'Couldnt find the event for this event id'
+            });
+        }
+
+        if(eventDb.user.toString()!==req.uid){
+            return res.status(401).json({
+                ok: false,
+                msg: 'User cant edit this event'
+            });
+
+        }
+
+        const newEvent = {
+            ...req.body,
+            user: req.uid
+        }
+
+        const dbUpdatedEvent = await Event.findByIdAndUpdate(eventId, newEvent, { new: true })
+
+        return res.status(200).json({
+            ok: true,
+            event: dbUpdatedEvent
+        });        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            msg: 'There was a problem getting the event. Please cotact admin'
+        })
+    }
+
 }
 
 const deleteEvent = (req = request, res = response) => {
