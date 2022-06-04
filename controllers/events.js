@@ -77,7 +77,45 @@ const updateEvent = async (req = request, res = response) => {
 
 }
 
-const deleteEvent = (req = request, res = response) => {
+const deleteEvent = async (req = request, res = response) => {
+    const eventId = req.params.id;
+
+    try {
+        const eventToDelete = await Event.findById(eventId);
+        console.log(eventToDelete);
+
+        if(!eventToDelete){
+            return res.status(404).json({
+                ok: false,
+                msg: 'Cant find the event to delete'
+            });
+        }
+
+        if(eventToDelete.user.toString()!== req.uid){
+            return res.status(401).json({
+                ok: false,
+                msg:'User cant delete this event'
+            })
+        }
+
+        await Event.findByIdAndDelete(eventId);
+
+        return res.status(200).json({
+            ok: true,
+            msg: 'Event deleted',
+            event: eventToDelete
+        });
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            msg: 'There was an error deleting the event. Please contact admin'
+        })
+    }
+
+
+
     return res.status(200).json({
         ok: true,
         msg: 'Delete event'
