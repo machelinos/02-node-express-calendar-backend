@@ -12,7 +12,7 @@ const createUser = async (req = request, res = response)=>{
         let user = await User.findOne({ email });
 
         if (user){
-            res.status(400).json({
+            return res.status(400).json({
                 ok: false,
                 message: 'Email is already in use'
             });
